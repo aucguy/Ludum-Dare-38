@@ -3,7 +3,7 @@
  **/
 base.registerModule('app', function() {
   var play = base.importModule('play');
-  
+
   var setup = {
     /**
      * called prior to initialization

@@ -1,13 +1,18 @@
 base.registerModule('play', function() {
   var util = base.importModule('util');
-
+  
   var TILES = {
     air: 0,
     soil: 1
   };
-
+  
+  var BLOCKING = {
+    no: 0,
+    yes: 1
+  };
+  
   var MAX_POTENTIAL = 0x0FFFFF;
-
+  
   var PlayState = util.extend(util.Contextual, 'PlayState', {
     constructor: function PlayState(main) {
       this.constructor$Contextual();
@@ -24,7 +29,7 @@ base.registerModule('play', function() {
       this.top.shutdown();
     }
   });
-
+  
   var Top = util.extend(util.Contextual, 'Top', {
     constructor: function Top(state) {
       this.constructor$Contextual();
@@ -57,7 +62,7 @@ base.registerModule('play', function() {
       util.clearBitmapCache();
     }
   });
-
+  
   var MouseHandler = util.extend(util.Contextual, 'MouseHandler', {
     constructor: function MouseHandler(game, onMouseDown, onUpdate) {
       this.game = game;
@@ -66,7 +71,7 @@ base.registerModule('play', function() {
       this.lastMouseCoord = null;
     },
     update: function update() {
-      var mouse = this.game.input.activePointer.leftButton;
+      var mouse = this.game.input.activePointer.leftButton
       if(mouse.isDown) {
         var now = {
           x: mouse.parent.x,
@@ -85,16 +90,16 @@ base.registerModule('play', function() {
       }
     }
   });
-
+  
   var KeyHandler = util.extend(util.Contextual, 'KeyHandler', {
     constructor: function KeyHandler(onToggleTile, keyboard) {
       this.constructor$Contextual();
-      keyboard.addKey(Phaser.KeyCode.S).onDown.add(function() {
+      keyboard.addKey(Phaser.KeyCode.S).onHoldCallback = function() {
         onToggleTile.dispatch();
-      });
+      };
     }
   });
-
+  
   /**
    * contains the ... world
    */
@@ -106,7 +111,7 @@ base.registerModule('play', function() {
       this.tiles = new Uint8Array(game.width * game.height);
       this.potential = new Uint32Array(game.width * game.height);
       this.onSetTile = util.NOP;
-      for(var i = 0; i < this.tiles.length; i++) {
+      for(var i=0; i<this.tiles.length; i++) {
         this.tiles[i] = TILES.soil;
         this.potential[i] = MAX_POTENTIAL;
       }
@@ -117,7 +122,7 @@ base.registerModule('play', function() {
       this.onSetTile(x, y, tile, this, index);
     }
   });
-
+  
   /**
    * responsible for changing the world's tiles based on user input
    */
@@ -138,12 +143,12 @@ base.registerModule('play', function() {
       //then trim off the 'corners'
       //TODO fix pointer going straight up
       //TODO fix missing parts of the line
-      for(var y = minY; y < maxY; y++) {
-        for(var x = minX; x < maxX; x++) {
+      for(var y=minY; y<maxY; y++) {
+        for(var x=minX; x<maxX; x++) {
           var inter;
           //just ignores vertical lines
           if(pointer.now.x === pointer.last.x) {
-            inter = pointer.now;
+            inter = pointer.now
           } else {
             var m = (pointer.last.y - pointer.now.y) / (pointer.last.x - pointer.now.x);
             var mPrime = -1 / m;
@@ -164,9 +169,9 @@ base.registerModule('play', function() {
     },
     clampPoint: function clampPoint(a, b, c) {
       if((a.x < b.x && c.x < a.x) ||
-        (a.x > b.x && c.x > a.x) ||
-        (a.y < b.y && c.y < a.y) ||
-        (a.y > b.y && c.y > a.y)) {
+         (a.x > b.x && c.x > a.x) ||
+         (a.y < b.y && c.y < a.y) || 
+         (a.y > b.y && c.y > a.y)) {
         return a;
       } else {
         return c;
@@ -176,7 +181,7 @@ base.registerModule('play', function() {
       this.tile = this.tile == TILES.air ? TILES.soil : TILES.air;
     }
   });
-
+  
   /**
    * the earth that the ants walk around in
    */
@@ -194,8 +199,8 @@ base.registerModule('play', function() {
       var tiles = this.world.tiles;
       var imageIndex = 0;
       var tileIndex = 0;
-      for(var y = 0; y < imageData.height; y++) {
-        for(var x = 0; x < imageData.width; x++) {
+      for(var y=0; y<imageData.height; y++) {
+        for(var x=0; x<imageData.width; x++) {
           var tile = tiles[tileIndex++];
           if(tile === TILES.air) {
             var potential = this.world.potential[tileIndex - 1] / 5;
@@ -214,7 +219,7 @@ base.registerModule('play', function() {
       this.texture.dirty = true;
     }
   });
-
+  
   var Flow = util.extend(util.Contextual, 'Flow', {
     constructor: function Flow(world, onUpdate) {
       this.constructor$Contextual();
@@ -225,69 +230,113 @@ base.registerModule('play', function() {
       onUpdate.add(this.update.bind(this));
     },
     update: function update() {
-      for(var i = 0; i < 1; i++) {
+      for(var i=0; i<1; i++) {
         this.simulate();
       }
     },
     simulate: function simulate() {
-      //TODO fix alternating lines, it might get the ants stuck or slow them down
+      //this might break if two types of tiles are placed in the same tick
       var oldField = new Uint32Array(this.world.potential);
 
       var width = this.world.width;
       var height = this.world.height;
       var tiles = this.world.tiles;
-
-      var x;
-      for(x = 0; x < width; x++) {
+            
+      for(var x=0; x<width; x++) {
         if(tiles[x] == TILES.air) {
           this.world.potential[x] = 0;
         }
       }
-
+      
+      //console.log(this.diffs.length);
+      
       var newDiffs = new util.SemiFilledTypedArray(Uint32Array, this.diffs.capacity);
       var visited = new Uint32Array(tiles.length);
-
-      for(var i = 0; i < this.diffs.length; i++) {
-        var index = this.diffs.data[i];
-        x = index % width;
-        var y = Math.floor(index / width);
-        if(tiles[index] === TILES.air && y !== 0) {
-          if(visited[index] !== 0) {
-            continue;
-          }
-          visited[index] = 1;
-
-          var left = x === 0 || tiles[index - 1] !== TILES.air ? MAX_POTENTIAL : oldField[index - 1];
-          var right = x === width - 1 || tiles[index + 1] !== TILES.air ? MAX_POTENTIAL : oldField[index + 1];
-          var up = y === 0 || tiles[index - width] !== TILES.air ? MAX_POTENTIAL : oldField[index - width];
-          var down = y === height - 1 || tiles[index + width] !== TILES.air ? MAX_POTENTIAL : oldField[index + width];
-          var lowest = Math.min(left, right, up, down);
-
-          var here = oldField[index];
-          var target = Math.min(MAX_POTENTIAL, lowest + 1);
-          if(target <= here) {
-            this.world.potential[index] = target;
-            if(left > target) {
-              newDiffs.push(index - 1);
+      
+      for(var mode=0; mode<2; mode++) {
+        for(var i=0; i<this.diffs.length; i+=2) {
+          var index = this.diffs.data[i];
+          var blocking = 0 //this.diffs.data[i + 1];
+          if(tiles[index] === TILES.air && y !== 0) {
+            if(blocking !== mode || visited[index] !== 0) {
+              if(blocking === BLOCKING.yes && visited[index] === 1) {
+                console.log('blocking skipped');
+              }
+              continue;
             }
-            if(right > target) {
+            visited[index] = 1;
+            
+            var x = index % width;
+            var y = Math.floor(index / width);
+            var left  = x === 0 || tiles[index - 1] !== TILES.air ? MAX_POTENTIAL : oldField[index - 1];
+            var right = x === width - 1 || tiles[index + 1] !== TILES.air ? MAX_POTENTIAL : oldField[index + 1];
+            var up    = y === 0 || tiles[index - width] !== TILES.air ? MAX_POTENTIAL : oldField[index - width];
+            var down  = y === height - 1 || tiles[index + width] !== TILES.air ? MAX_POTENTIAL : oldField[index + width];
+            var lowest = Math.min(left, right, up, down);
+            
+            var here = oldField[index];
+            var target = Math.min(MAX_POTENTIAL, lowest + 1);
+            if(blocking === BLOCKING.yes && true) {
+              this.world.potential[index] = MAX_POTENTIAL;
+              if(lowest > here) {
+                if(left > here) {
+                  newDiffs.push(index - 1);
+                  newDiffs.push(BLOCKING.yes);
+                }
+                if(right > here) {
+                  newDiffs.push(index + 1);
+                  newDiffs.push(BLOCKING.yes);
+                }
+                if(up > here) {
+                  newDiffs.push(index - width);
+                  newDiffs.push(BLOCKING.yes);
+                }
+                if(down > here) {
+                  newDiffs.push(index + width);
+                  newDiffs.push(BLOCKING.yes);
+                }
+              } else {
+                newDiffs.push(index);
+                newDiffs.push(BLOCKING.no);
+                newDiffs.push(index - 1);
+                newDiffs.push(BLOCKING.no);
+                newDiffs.push(index + 1);
+                newDiffs.push(BLOCKING.no);
+                newDiffs.push(index - width);
+                newDiffs.push(BLOCKING.no);
+                newDiffs.push(index + width);
+                newDiffs.push(BLOCKING.no);
+              }
+              /*newDiffs.push(index - 1);
+              newDiffs.push(left > here + 1 ? BLOCKING.yes : BLOCKING.no);
               newDiffs.push(index + 1);
-            }
-            if(up > target) {
+              newDiffs.push(right > here + 1 ? BLOCKING.yes : BLOCKING.no);
               newDiffs.push(index - width);
-            }
-            if(down > target) {
+              newDiffs.push(up > here + 1 ? BLOCKING.yes : BLOCKING.no);
               newDiffs.push(index + width);
+              newDiffs.push(down > here + 1 ? BLOCKING.yes : BLOCKING.no);*/
+            } else {
+              this.world.potential[index] = target;
+              if(left > target + 1) {
+                newDiffs.push(index - 1);
+                newDiffs.push(BLOCKING.no);
+              }
+              if(right > target + 1) {
+                newDiffs.push(index + 1);
+                newDiffs.push(BLOCKING.no);
+              }
+              if(up > target + 1) {
+                newDiffs.push(index - width);
+                newDiffs.push(BLOCKING.no);
+              }
+              if(down > target + 1) {
+                newDiffs.push(index + width);
+                newDiffs.push(BLOCKING.no);
+              }
             }
           } else {
             this.world.potential[index] = MAX_POTENTIAL;
-            newDiffs.push(index - 1);
-            newDiffs.push(index + 1);
-            newDiffs.push(index - width);
-            newDiffs.push(index + width);
           }
-        } else {
-          this.world.potential[index] = MAX_POTENTIAL;
         }
       }
       this.diffs = newDiffs;
@@ -295,15 +344,26 @@ base.registerModule('play', function() {
     onSetTile: function onSetTile(x, y, tile, world, index) {
       if(tile === TILES.air) {
         this.diffs.push(index);
+        this.diffs.push(BLOCKING.no);
       } else {
+        this.diffs.push(index);
+        this.diffs.push(1);
         this.diffs.push(index - 1);
+        this.diffs.push(BLOCKING.yes);
         this.diffs.push(index + 1);
+        this.diffs.push(BLOCKING.yes);
         this.diffs.push(index - world.width);
+        this.diffs.push(BLOCKING.yes);
         this.diffs.push(index + world.width);
+        this.diffs.push(BLOCKING.yes);
       }
     }
   });
-
+  
+  function pause() {
+    debugger;
+  }
+  
   return {
     PlayState: PlayState
   };
