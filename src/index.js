@@ -5,8 +5,8 @@ var base = base || {};
 
   base.indexFunc = function indexFunc(state) {
     var assets = [
-      ['image/background', 'assets/image/background.svg', 'image'],
-      ['image/joint', 'assets/image/joint.svg', 'image']
+      ['image/background', 'assets/image/background.svg', 'text'],
+      ['image/joint', 'assets/image/joint.svg', 'image'],
     ];
     var ldBaseDir = 'Ludum-Dare-Base/';
     /* @if dev */

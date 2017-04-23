@@ -3,6 +3,7 @@ base.registerModule('play', function() {
   var common = base.importModule('common');
   var editor = base.importModule('editor');
   var physical = base.importModule('physical');
+  var gui = base.importModule('gui');
 
   var MODES = {
     editable: 0,
@@ -32,6 +33,7 @@ base.registerModule('play', function() {
       this.main = main;
       this.game = main.game;
       this.state = state;
+      this.background = null;
       this.customTexture = null;
       this.mouseHandler = null;
       this.keyHandler = null;
@@ -44,12 +46,14 @@ base.registerModule('play', function() {
         onRender: new Phaser.Signal(),
         onRemoveKey: new Phaser.Signal(),
         onModeSwitch: new Phaser.Signal(),
-        onCustomRender: new Phaser.Signal()
+        onCustomRender: new Phaser.Signal(),
+        onGravityChange: new Phaser.Signal()
       };
     },
     create: function create() {
       this.game.physics.startSystem(Phaser.Physics.P2JS);
-      this.game.add.sprite(0, 0, 'image/background');
+      this.background = new PlayMenu(this.game, this.signals.onUpdate,
+        this.signals.onModeSwitch, this.signals.onGravityChange);
       this.customTexture = new CustomTexture(this.game, this.signals.onRender,
         this.signals.onCustomRender);
       this.mouseHandler = new MouseHandler(this.game, this.signals.onMouseDown,
@@ -73,7 +77,39 @@ base.registerModule('play', function() {
     }
   });
 
-  var MouseHandler = util.extend(util.Contextual, 'MouseHandler', {
+  var PlayMenu = util.extend(Object, 'PlayMenu', {
+    constructor: function PlayMenu(game, onUpdate, onModeSwitch,
+      onGravityChange) {
+      this.menu = new gui.Menu('image/background', game, onUpdate);
+      this.mode = MODES.editable;
+      this.updateGuiMode();
+      onModeSwitch.add(this.switchModes.bind(this));
+      onGravityChange.add(this.gravityChange.bind(this));
+    },
+    updateGuiMode: function updateGuiMode() {
+      var elem = this.menu.canvg.Definitions.score;
+      if(this.mode === MODES.editable) {
+        elem.styles['fill-opacity'].value = '0';
+        elem.styles['stroke-opacity'].value = '0';
+      } else {
+        elem.styles['fill-opacity'].value = '1';
+        elem.styles['stroke-opacity'].value = '1';
+      }
+      this.menu.dirty = true;
+    },
+    switchModes: function switchModes() {
+      this.mode = this.mode === MODES.editable ? MODES.physical :
+        MODES.editable;
+      this.updateGuiMode();
+    },
+    gravityChange: function gravityChange(mass) {
+      this.menu.canvg.Definitions.score.children[0].children[0].text =
+        'Gravity: ' + Math.round(mass);
+      this.menu.dirty = true;
+    }
+  });
+
+  var MouseHandler = util.extend(Object, 'MouseHandler', {
     constructor: function MouseHandler(game, onMouseDown, onMouseUp,
       onMouseMove, onUpdate) {
       this.game = game;
@@ -149,7 +185,6 @@ base.registerModule('play', function() {
       };
       this.mode = MODES.editable;
 
-
       this.editableWorld = new editor.EditableWorld(game);
       this.editor = new editor.Editor(this.editableWorld,
         customTexture,
@@ -203,7 +238,7 @@ base.registerModule('play', function() {
     translateWorld: function translateWorld(editableWorld) {
       var game = editableWorld.game;
       var physicalWorld = new physical.PhysicalWorld(game, this.physicalSignals
-        .onUpdate);
+        .onUpdate, this.globalSignals.onGravityChange);
       //addJoint preserves order
       var i;
       for(i = 0; i < editableWorld.joints.length; i++) {

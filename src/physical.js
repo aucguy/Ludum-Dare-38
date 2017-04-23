@@ -6,27 +6,23 @@ base.registerModule('physical', function() {
   var MIN_R = 100;
 
   var PhysicalWorld = util.extend(common.World, 'PhysicalWorld', {
-    constructor: function PhysicalWorld(game, onUpdate) {
+    constructor: function PhysicalWorld(game, onUpdate, onGravityChange) {
       this.constructor$World(game);
       this.updateBinding = onUpdate.add(this.update.bind(this));
+      this.initialMass = 100;
+      this.massRate = 0.001;
+      this.startTime = game.time.elapsedSince(0);
+      this.onGravityChange = onGravityChange;
     },
     update: function update() {
       var center = new Phaser.Point(this.game.width / 2, this.game.height /
         2);
-      var mass = 100;
-      /*var center = new Phaser.Point(0, 0);
-      var mass = 0;
-      var i;
-      for(i=0; i<this.joints.length; i++) {
-        var joint = this.joints[i];
-        var coefficient = joint.sprite.body.mass / this.joints.length;
-        center.x += joint.getPosition().x * coefficient;
-        center.y += joint.getPosition().y * coefficient;
-        mass += joint.sprite.body.mass; 
-      }*/
+      var deltaTime = this.game.time.elapsedSince(this.startTime);
+      var mass = this.initialMass + this.massRate * deltaTime;
       for(i = 0; i < this.joints.length; i++) {
         this.joints[i].update(center, mass);
       }
+      this.onGravityChange.dispatch(mass);
     },
     kill: function kill() {
       this.updateBinding.detach();
