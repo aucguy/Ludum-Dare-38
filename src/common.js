@@ -8,14 +8,8 @@ base.registerModule('common', function() {
     addConnection: function addConnection(connection) {
       this.connections.push(connection);
     },
-    removeConnection: function removeConnection(connection,
-      killConnection) {
-      if(killConnection === undefined) {
-        killConnection = true;
-      }
-      if(killConnection) {
-        connection.kill();
-      }
+    removeConnection: function removeConnection(connection) {
+      connection.destroy();
       if(this.connections.indexOf(connection) !== -1) {
         this.connections.splice(this.connections.indexOf(connection),
           1);
@@ -42,10 +36,12 @@ base.registerModule('common', function() {
     constructor: function World(game) {
       this.constructor$ConnectionContainer();
       this.game = game;
+      this.group = this.game.add.group();
       this.joints = [];
     },
     addJoint: function(joint) {
       this.joints.push(joint);
+      this.group.add(joint.sprite);
     },
     removeJoint: function removeJoint(joint) {
       joint.kill();
@@ -58,14 +54,14 @@ base.registerModule('common', function() {
   var Joint = util.extend(ConnectionContainer, 'Joint', {
     constructor: function Joint(game, x, y) {
       this.constructor$ConnectionContainer();
-      this.sprite = game.add.sprite(x, y, 'image/joint');
+      this.sprite = game.make.sprite(x, y, 'image/joint');
       this.sprite.anchor.setTo(0.5, 0.5);
       this.radius = 5;
     },
     kill: function kill() {
       this.sprite.kill();
       for(var i = 0; i < this.connections.length; i++) {
-        this.connections[i].kill();
+        this.connections[i].destroy();
       }
     },
     getPosition: function getPosition() {
@@ -81,6 +77,7 @@ base.registerModule('common', function() {
       this.setJoint1(joint1);
       this.setJoint2(joint2);
       this.renderBinding = onRender.add(this.render.bind(this));
+      this.width = 3;
     },
     setJoint1: function setJoint1(joint) {
       if(this.joint1) {
@@ -89,18 +86,18 @@ base.registerModule('common', function() {
       this.joint1 = joint;
       this.joint1.addConnection(this);
     },
-    setJoint2: function setJoint1(joint) {
+    setJoint2: function setJoint2(joint) {
       if(this.joint2) {
         this.joint2.removeConnection(this);
       }
       this.joint2 = joint;
       this.joint2.addConnection(this);
     },
-    render: function() {
+    render: function render() {
       var context = this.customTexture.texture.context;
       context.save();
       context.strokeStyle = '#000000';
-      context.lineWidth = 3;
+      context.lineWidth = this.width;
       context.beginPath();
       context.moveTo(this.joint1.getPosition().x, this.joint1.getPosition()
         .y);
@@ -110,10 +107,13 @@ base.registerModule('common', function() {
       context.restore();
       this.customTexture.texture.dirty = true;
     },
-    kill: function() {
+    destroy: function destroy() {
       this.renderBinding.detach();
-      this.joint1.removeConnection(this, false);
-      this.joint2.removeConnection(this, false);
+    },
+    kill: function kill() {
+      this.destroy();
+      this.joint1.removeConnection(this);
+      this.joint2.removeConnection(this);
     }
   });
 

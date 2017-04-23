@@ -36,7 +36,8 @@ var base = base || {};
       ['scripts/app', 'src/app.js', 'script'],
       ['scripts/play', 'src/play.js', 'script'],
       ['scripts/editor', 'src/editor.js', 'script'],
-      ['scripts/common', 'src/common.js', 'script']
+      ['scripts/common', 'src/common.js', 'script'],
+      ['scripts/physical', 'src/physical.js', 'script']
     ]), '../..');
     if(false) {
       /* @endif */
