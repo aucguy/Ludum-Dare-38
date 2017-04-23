@@ -243,7 +243,8 @@ base.registerModule('play', function() {
       var i;
       for(i = 0; i < editableWorld.joints.length; i++) {
         var position = editableWorld.joints[i].getPosition();
-        physicalWorld.addJoint(new physical.PhysicalJoint(game,
+        physicalWorld.addJoint(new physical.PhysicalJoint(
+          physicalWorld, game,
           position.x, position.y));
       }
       for(i = 0; i < editableWorld.connections.length; i++) {

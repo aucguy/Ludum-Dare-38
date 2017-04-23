@@ -15,7 +15,7 @@
    version="1.1"
    id="svg16"
    inkscape:version="0.92.1 r15371"
-   sodipodi:docname="node.svg">
+   sodipodi:docname="joint.svg">
   <defs
      id="defs10" />
   <sodipodi:namedview
@@ -26,7 +26,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.2"
-     inkscape:cx="-20"
+     inkscape:cx="-14.732143"
      inkscape:cy="17.195861"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
@@ -36,7 +36,19 @@
      inkscape:window-height="706"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-center="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-page="true" />
   <metadata
      id="metadata13">
     <rdf:RDF>
@@ -45,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -54,12 +66,11 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-294.35415)">
-    <ellipse
-       style="opacity:1;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+    <circle
+       style="opacity:1;fill:#040404;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.5334301;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        id="path18"
-       cx="1.3819754"
-       cy="295.68887"
-       rx="1.263858"
-       ry="1.2166108" />
+       cx="1.3229167"
+       cy="295.67706"
+       r="1.3229166" />
   </g>
 </svg>

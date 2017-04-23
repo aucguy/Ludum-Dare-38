@@ -3,7 +3,8 @@ base.registerModule('physical', function() {
   var common = base.importModule('common');
 
   var GRAVITY = 100;
-  var MIN_R = 100;
+  var MAX_FORCE = 50;
+  var DIST_THRESHOLD = 50;
 
   var PhysicalWorld = util.extend(common.World, 'PhysicalWorld', {
     constructor: function PhysicalWorld(game, onUpdate, onGravityChange) {
@@ -13,6 +14,13 @@ base.registerModule('physical', function() {
       this.massRate = 0.001;
       this.startTime = game.time.elapsedSince(0);
       this.onGravityChange = onGravityChange;
+
+      var center = this.game.add.sprite(game.width / 2, game.height /
+        2, 'null', undefined, this.group);
+      center.visible = false;
+      game.physics.p2.enable(center);
+      center.body.setCircle(20);
+      center.body.static = true;
     },
     update: function update() {
       var center = new Phaser.Point(this.game.width / 2, this.game.height /
@@ -21,6 +29,10 @@ base.registerModule('physical', function() {
       var mass = this.initialMass + this.massRate * deltaTime;
       for(i = 0; i < this.joints.length; i++) {
         this.joints[i].update(center, mass);
+      }
+      var connections = this.connections.slice();
+      for(i = 0; i < connections.length; i++) {
+        connections[i].update();
       }
       this.onGravityChange.dispatch(mass);
     },
@@ -34,20 +46,22 @@ base.registerModule('physical', function() {
   });
 
   var PhysicalJoint = util.extend(common.Joint, 'PhysicalJoint', {
-    constructor: function PhysicalJoint(game, x, y) {
+    constructor: function PhysicalJoint(world, game, x, y) {
       this.constructor$Joint(game, x, y);
-      game.physics.p2.enable(this.sprite, true);
+      game.physics.p2.enable(this.sprite);
       this.sprite.body.fixedRotation = true;
-      this.sprite.body.clearShapes(); //so there are no collisions
+      this.sprite.body.setCircle(5);
       this.sprite.body.mass = 1;
+      this.world = world;
     },
     update: function update(gravityCenter, gravityMass) {
       var m1 = this.sprite.body.mass;
       var m2 = gravityMass;
-      var r = util.dist([this.getPosition().x, this.getPosition().y], [
-        gravityCenter.x, gravityCenter.y
-      ]);
-      r = Math.max(MIN_R, r);
+      //var r = util.dist([this.getPosition().x, this.getPosition().y], [
+      //  gravityCenter.x, gravityCenter.y
+      //]);
+      //r = Math.max(MIN_R, r);
+      r = 10;
       var magnitude = GRAVITY * m1 * m2 / Math.pow(r, 2);
       var unit = Phaser.Point.normalize(Phaser.Point.subtract(this.getPosition(),
         gravityCenter));
@@ -55,6 +69,12 @@ base.registerModule('physical', function() {
         magnitude, magnitude));
       this.sprite.body.applyForce([force.x, force.y], this.getPosition()
         .x, this.getPosition().y);
+    },
+    removeConnection: function removeConnection(connection) {
+      this.removeConnection$ConnectionContainer(connection);
+      if(this.connections.length === 0) {
+        this.world.removeJoint(this);
+      }
     }
   });
 
@@ -65,9 +85,9 @@ base.registerModule('physical', function() {
         joint1, joint2, onRender) {
         this.physics = physics;
         this.constraint = null;
+        this.distance = null;
         this.constructor$Connection(world, customTexture, joint1,
-          joint2,
-          onRender);
+          joint2, onRender);
       },
       setJoint1: function setJoint1(joint) {
         this.setJoint1$Connection(joint);
@@ -83,11 +103,22 @@ base.registerModule('physical', function() {
           this.constraint = null;
         }
         if(this.joint1 && this.joint2) {
-          var pos1 = this.joint1.getPosition();
-          var pos2 = this.joint2.getPosition();
-          var dist = util.dist([pos1.x, pos1.y], [pos2.x, pos2.y]);
+          this.distance = this.getJointDist();
           this.constraint = this.physics.createDistanceConstraint(this.joint1
-            .sprite, this.joint2.sprite, dist);
+            .sprite, this.joint2.sprite, this.distance, undefined,
+            undefined, MAX_FORCE);
+        }
+      },
+      getJointDist: function getJointDist() {
+        var pos1 = this.joint1.getPosition();
+        var pos2 = this.joint2.getPosition();
+        return util.dist([pos1.x, pos1.y], [pos2.x, pos2.y]);
+      },
+      update: function update() {
+        var distNow = this.getJointDist();
+        if(distNow < this.distance - DIST_THRESHOLD || distNow > this.distance +
+          DIST_THRESHOLD) {
+          this.kill();
         }
       },
       kill: function kill() {
