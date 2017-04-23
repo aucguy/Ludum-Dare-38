@@ -4,29 +4,28 @@ var base = base || {};
   var logoLoaded = false;
 
   base.indexFunc = function indexFunc(state) {
-    var assets = [
-      ['image/background', 'assets/image/background.svg', 'image'],
-      ['image/joint', 'assets/image/joint.svg', 'image']
-    ];
+    var assets = [];
+    /*
+    example:
+      var assets = [
+        ['image/tiles',         'assets/image/tiles.png',       'spritesheet', {
+          frameWidth: 32,
+          frameHeight: 32,
+          pixelated: true
+        }],
+        ['program/level1',      'assets/program/level1.sbl',    'text'],
+        ['level/level1',        'assets/level/level1.json',     'tilemap'],
+      ];
+    */
     var ldBaseDir = 'Ludum-Dare-Base/';
     /* @if dev */
     base.loadAssets(assets.concat([
-      ['scripts/phaser', ldBaseDir + 'lib/phaser/v2/build/phaser.js',
-        'script'
-      ],
+      ['scripts/phaser', ldBaseDir + 'lib/phaser/v2/build/phaser.js', 'script'],
       ['scripts/canvg', ldBaseDir + 'lib/canvg/canvg.js', 'script'],
-      ['scripts/rgbcolor', ldBaseDir + 'lib/canvg/rgbcolor.js',
-        'script'
-      ],
-      ['scripts/stackblur', ldBaseDir + 'lib/canvg/StackBlur.js',
-        'script'
-      ],
-      ['scripts/phaserInjector', ldBaseDir +
-        'lib/basejs/src/injectors/phaserInjector.js', 'script'
-      ],
-      ['scripts/statemachine', ldBaseDir +
-        'lib/javascript-state-machine/state-machine.js', 'script'
-      ],
+      ['scripts/rgbcolor', ldBaseDir + 'lib/canvg/rgbcolor.js', 'script'],
+      ['scripts/stackblur', ldBaseDir + 'lib/canvg/StackBlur.js', 'script'],
+      ['scripts/phaserInjector', ldBaseDir + 'lib/basejs/src/injectors/phaserInjector.js', 'script'],
+      ['scripts/statemachine', ldBaseDir + 'lib/javascript-state-machine/state-machine.js', 'script'],
 
       ['scripts/main', ldBaseDir + 'src/main.js', 'script'],
       ['scripts/gui', ldBaseDir + 'src/gui.js', 'script'],
@@ -35,7 +34,7 @@ var base = base || {};
       ['scripts/index', 'src/index.js', 'script'],
       ['scripts/app', 'src/app.js', 'script'],
       ['scripts/play', 'src/play.js', 'script'],
-      ['scripts/editor', 'src/editor.js', 'script'],
+      ['scripts/input', 'src/input.js', 'script'],
       ['scripts/common', 'src/common.js', 'script']
     ]), '../..');
     if(false) {
@@ -68,16 +67,14 @@ var base = base || {};
     context.fillStyle = '#FFFFFF';
     context.fillRect(0, 0, width, height);
     if(logoLoaded) {
-      context.drawImage(logo, (width - logo.width) / 2, (height - logo.height) /
-        2);
+      context.drawImage(logo, (width - logo.width) / 2, (height - logo.height) / 2);
     }
     context.fillStyle = '#000000';
     context.beginPath();
     context.rect(20, height - 40, width - 40, 20);
     context.stroke();
     context.beginPath();
-    context.rect(20, height - 40, (loaded / (loaded + loading)) * (width -
-      40), 20);
+    context.rect(20, height - 40, (loaded / (loaded + loading)) * (width - 40), 20);
     context.fill();
   };
 })();
