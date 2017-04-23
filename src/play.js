@@ -49,7 +49,6 @@ base.registerModule('play', function() {
     },
     create: function create() {
       this.game.physics.startSystem(Phaser.Physics.P2JS);
-      this.game.physics.p2.gravity.y = 180;
       this.game.add.sprite(0, 0, 'image/background');
       this.customTexture = new CustomTexture(this.game, this.signals.onRender,
         this.signals.onCustomRender);
@@ -201,9 +200,10 @@ base.registerModule('play', function() {
     /**
      * turns editable worlds into physical worlds
      */
-    translateWorld: function translateWorld(editableWorld, onRender) {
+    translateWorld: function translateWorld(editableWorld) {
       var game = editableWorld.game;
-      var physicalWorld = new physical.PhysicalWorld(game);
+      var physicalWorld = new physical.PhysicalWorld(game, this.physicalSignals
+        .onUpdate);
       //addJoint preserves order
       var i;
       for(i = 0; i < editableWorld.joints.length; i++) {
@@ -218,7 +218,8 @@ base.registerModule('play', function() {
         var joint2 = physicalWorld.joints[editableWorld.joints.indexOf(
           connection.joint2)];
         physicalWorld.addConnection(new physical.PhysicalConnection(
-          game.physics.p2, connection.customTexture, joint1,
+          physicalWorld, game.physics.p2, connection.customTexture,
+          joint1,
           joint2, this.physicalSignals.onCustomRender));
       }
       return physicalWorld;

@@ -9,7 +9,6 @@ base.registerModule('common', function() {
       this.connections.push(connection);
     },
     removeConnection: function removeConnection(connection) {
-      connection.destroy();
       if(this.connections.indexOf(connection) !== -1) {
         this.connections.splice(this.connections.indexOf(connection),
           1);
@@ -48,6 +47,10 @@ base.registerModule('common', function() {
       if(this.joints.indexOf(joint) !== -1) {
         this.joints.splice(this.joints.indexOf(joint), 1);
       }
+    },
+    removeConnection: function removeConnection(connection) {
+      connection.kill();
+      this.removeConnection$ConnectionContainer();
     }
   });
 
@@ -60,8 +63,9 @@ base.registerModule('common', function() {
     },
     kill: function kill() {
       this.sprite.kill();
-      for(var i = 0; i < this.connections.length; i++) {
-        this.connections[i].destroy();
+      var connections = this.connections.slice();
+      for(var i = 0; i < connections.length; i++) {
+        connections[i].kill();
       }
     },
     getPosition: function getPosition() {
@@ -70,9 +74,11 @@ base.registerModule('common', function() {
   });
 
   var Connection = util.extend(Object, 'Connection', {
-    constructor: function Connection(customTexture, joint1, joint2,
+    constructor: function Connection(world, customTexture, joint1,
+      joint2,
       onRender) {
-      //joint 1 and 2 are position, not necessarly joints
+      //joint 1 and 2 are position, not necessarily joints
+      this.world = world;
       this.customTexture = customTexture;
       this.setJoint1(joint1);
       this.setJoint2(joint2);
@@ -107,13 +113,11 @@ base.registerModule('common', function() {
       context.restore();
       this.customTexture.texture.dirty = true;
     },
-    destroy: function destroy() {
-      this.renderBinding.detach();
-    },
     kill: function kill() {
-      this.destroy();
+      this.renderBinding.detach();
       this.joint1.removeConnection(this);
       this.joint2.removeConnection(this);
+      this.world.removeConnection$ConnectionContainer(this);
     }
   });
 

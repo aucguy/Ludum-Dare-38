@@ -2,8 +2,34 @@ base.registerModule('physical', function() {
   var util = base.importModule('util');
   var common = base.importModule('common');
 
+  var GRAVITY = 100;
+  var MIN_R = 100;
+
   var PhysicalWorld = util.extend(common.World, 'PhysicalWorld', {
+    constructor: function PhysicalWorld(game, onUpdate) {
+      this.constructor$World(game);
+      this.updateBinding = onUpdate.add(this.update.bind(this));
+    },
+    update: function update() {
+      var center = new Phaser.Point(this.game.width / 2, this.game.height /
+        2);
+      var mass = 100;
+      /*var center = new Phaser.Point(0, 0);
+      var mass = 0;
+      var i;
+      for(i=0; i<this.joints.length; i++) {
+        var joint = this.joints[i];
+        var coefficient = joint.sprite.body.mass / this.joints.length;
+        center.x += joint.getPosition().x * coefficient;
+        center.y += joint.getPosition().y * coefficient;
+        mass += joint.sprite.body.mass; 
+      }*/
+      for(i = 0; i < this.joints.length; i++) {
+        this.joints[i].update(center, mass);
+      }
+    },
     kill: function kill() {
+      this.updateBinding.detach();
       this.group.destroy();
       for(var i = 0; i < this.joints.length; i++) {
         this.joints[i].kill();
@@ -14,17 +40,37 @@ base.registerModule('physical', function() {
   var PhysicalJoint = util.extend(common.Joint, 'PhysicalJoint', {
     constructor: function PhysicalJoint(game, x, y) {
       this.constructor$Joint(game, x, y);
-      game.physics.p2.enable(this.sprite);
+      game.physics.p2.enable(this.sprite, true);
+      this.sprite.body.fixedRotation = true;
+      this.sprite.body.clearShapes(); //so there are no collisions
+      this.sprite.body.mass = 1;
+    },
+    update: function update(gravityCenter, gravityMass) {
+      var m1 = this.sprite.body.mass;
+      var m2 = gravityMass;
+      var r = util.dist([this.getPosition().x, this.getPosition().y], [
+        gravityCenter.x, gravityCenter.y
+      ]);
+      r = Math.max(MIN_R, r);
+      var magnitude = GRAVITY * m1 * m2 / Math.pow(r, 2);
+      var unit = Phaser.Point.normalize(Phaser.Point.subtract(this.getPosition(),
+        gravityCenter));
+      var force = Phaser.Point.multiply(unit, new Phaser.Point(
+        magnitude, magnitude));
+      this.sprite.body.applyForce([force.x, force.y], this.getPosition()
+        .x, this.getPosition().y);
     }
   });
 
   var PhysicalConnection = util.extend(common.Connection,
     'PhysicalConnection', {
-      constructor: function PhysicalConnection(physics, customTexture,
+      constructor: function PhysicalConnection(world, physics,
+        customTexture,
         joint1, joint2, onRender) {
         this.physics = physics;
         this.constraint = null;
-        this.constructor$Connection(customTexture, joint1, joint2,
+        this.constructor$Connection(world, customTexture, joint1,
+          joint2,
           onRender);
       },
       setJoint1: function setJoint1(joint) {
@@ -48,8 +94,8 @@ base.registerModule('physical', function() {
             .sprite, this.joint2.sprite, dist);
         }
       },
-      destroy: function destroy() {
-        this.destroy$Connection();
+      kill: function kill() {
+        this.kill$Connection();
         this.physics.removeConstraint(this.constraint);
       }
     });

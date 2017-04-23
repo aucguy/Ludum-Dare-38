@@ -81,7 +81,8 @@ base.registerModule('editor', function() {
         this.world.addJoint(new EditableJoint(this.world.game,
           pointer.x, pointer.y));
       } else {
-        this.currentConnection = new EditableConnection(this.customTexture,
+        this.currentConnection = new EditableConnection(this.world,
+          this.customTexture,
           joint, this.mousePositioned, this.onRender);
       }
     },
