@@ -62,11 +62,11 @@ base.registerModule('common', function() {
       this.radius = 5;
     },
     kill: function kill() {
-      this.sprite.kill();
       var connections = this.connections.slice();
       for(var i = 0; i < connections.length; i++) {
         connections[i].kill();
       }
+      killSprite(this.sprite);
     },
     getPosition: function getPosition() {
       return this.sprite.position;
@@ -120,11 +120,37 @@ base.registerModule('common', function() {
       this.world.removeConnection$ConnectionContainer(this);
     }
   });
+  
+  var spritesToKill = [];
+  var constraintsToRemove = [];
+  
+  function killSprite(sprite) {
+    spritesToKill.push(sprite);
+  }
+  
+  function removeConstraint(constraint) {
+    constraintsToRemove.push(constraint);
+  }
+  
+  function killThings(game) {
+    for(var i=0; i<constraintsToRemove.length; i++) {
+      game.physics.p2.removeConstraint(constraintsToRemove[i]);
+    }
+    for(var i=0; i<spritesToKill.length; i++) {
+      if(spritesToKill[i].body) {
+        spritesToKill[i].destroy();
+      }
+      spritesToKill[i].kill();
+    }
+  }
 
   return {
     Connectable: Connectable,
     World: World,
     Joint: Joint,
-    Connection: Connection
+    Connection: Connection,
+    killSprite: killSprite,
+    removeConstraint: removeConstraint,
+    killThings: killThings
   };
 });

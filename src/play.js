@@ -51,7 +51,7 @@ base.registerModule('play', function() {
       };
     },
     create: function create() {
-      this.game.physics.startSystem(Phaser.Physics.P2JS);
+      //this.game.physics.startSystem(Phaser.Physics.P2JS);
       this.background = new PlayMenu(this.game, this.signals.onUpdate,
         this.signals.onModeSwitch, this.signals.onGravityChange);
       this.customTexture = new CustomTexture(this.game, this.signals.onRender,
@@ -68,6 +68,7 @@ base.registerModule('play', function() {
     },
     update: function update() {
       this.signals.onUpdate.dispatch();
+      common.killThings(this.game);
     },
     render: function render() {
       this.signals.onRender.dispatch();

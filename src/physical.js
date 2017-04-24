@@ -2,27 +2,32 @@ base.registerModule('physical', function() {
   var util = base.importModule('util');
   var common = base.importModule('common');
 
-  var GRAVITY = 100;
-  var MAX_FORCE = 50;
-  var DIST_THRESHOLD = 50;
+  var GRAVITY = 1;
+  var MAX_FORCE = 25;
+  var DIST_THRESHOLD = 25;
+  var GOAL_HEIGHT = 375 / 2;
 
   var PhysicalWorld = util.extend(common.World, 'PhysicalWorld', {
     constructor: function PhysicalWorld(game, onUpdate, onGravityChange) {
       this.constructor$World(game);
       this.updateBinding = onUpdate.add(this.update.bind(this));
-      this.initialMass = 100;
+      this.initialMass = 10;
       this.massRate = 0.001;
       this.startTime = game.time.elapsedSince(0);
       this.onGravityChange = onGravityChange;
 
-      var center = this.game.add.sprite(game.width / 2, game.height /
-        2, 'null', undefined, this.group);
+      /*var center = this.game.add.sprite(game.width / 2, game.height /
+        2, undefined, undefined, this.group);
       center.visible = false;
       game.physics.p2.enable(center);
       center.body.setCircle(20);
-      center.body.static = true;
+      center.body.static = true;*/
+      this.running = true;
     },
     update: function update() {
+      if(!this.running) {
+        return;
+      }
       var center = new Phaser.Point(this.game.width / 2, this.game.height /
         2);
       var deltaTime = this.game.time.elapsedSince(this.startTime);
@@ -35,27 +40,42 @@ base.registerModule('physical', function() {
         connections[i].update();
       }
       this.onGravityChange.dispatch(mass);
+      
+      var goalReached = false;
+      var pos1 = [this.game.width / 2, this.game.height / 2];
+      for(var i = 0; i < this.joints.length; i++) {
+        var pos2 = [this.joints[i].getPosition().x, this.joints[i].getPosition().y];
+        if(util.dist(pos1, pos2) > GOAL_HEIGHT) {
+          goalReached = true;
+        }
+      }
+      if(!goalReached) {
+        //this.running = false;
+        //this.game.physics.p2.paused = true;
+      }
     },
     kill: function kill() {
       this.updateBinding.detach();
-      this.group.destroy();
-      for(var i = 0; i < this.joints.length; i++) {
-        this.joints[i].kill();
+      var joints = this.joints.slice();
+      for(var i = 0; i < joints.length; i++) {
+        joints[i].kill();
       }
+      this.group.destroy();
     }
   });
 
   var PhysicalJoint = util.extend(common.Joint, 'PhysicalJoint', {
     constructor: function PhysicalJoint(world, game, x, y) {
       this.constructor$Joint(game, x, y);
-      game.physics.p2.enable(this.sprite);
-      this.sprite.body.fixedRotation = true;
-      this.sprite.body.setCircle(5);
-      this.sprite.body.mass = 1;
+      //game.physics.p2.enable(this.sprite);
+      //this.sprite.body.fixedRotation = true;
+      //this.sprite.body.setCircle(5);
+      //this.sprite.body.mass = 1;
       this.world = world;
+      this.velocity = new Phaser.Point(0, 0);
     },
     update: function update(gravityCenter, gravityMass) {
-      var m1 = this.sprite.body.mass;
+      var m1 = 1;
       var m2 = gravityMass;
       //var r = util.dist([this.getPosition().x, this.getPosition().y], [
       //  gravityCenter.x, gravityCenter.y
@@ -67,8 +87,11 @@ base.registerModule('physical', function() {
         gravityCenter));
       var force = Phaser.Point.multiply(unit, new Phaser.Point(
         magnitude, magnitude));
-      this.sprite.body.applyForce([force.x, force.y], this.getPosition()
-        .x, this.getPosition().y);
+      this.sprite.position.x -= force.x;
+      this.sprite.position.y -= force.y;
+      
+      //this.sprite.position.x += this.velocity.x;
+      //this.sprite.position.y += this.velocity.y;
     },
     removeConnection: function removeConnection(connection) {
       this.removeConnection$ConnectionContainer(connection);
@@ -104,9 +127,9 @@ base.registerModule('physical', function() {
         }
         if(this.joint1 && this.joint2) {
           this.distance = this.getJointDist();
-          this.constraint = this.physics.createDistanceConstraint(this.joint1
+          /*this.constraint = this.physics.createDistanceConstraint(this.joint1
             .sprite, this.joint2.sprite, this.distance, undefined,
-            undefined, MAX_FORCE);
+            undefined, MAX_FORCE);*/
         }
       },
       getJointDist: function getJointDist() {
@@ -115,15 +138,27 @@ base.registerModule('physical', function() {
         return util.dist([pos1.x, pos1.y], [pos2.x, pos2.y]);
       },
       update: function update() {
-        var distNow = this.getJointDist();
-        if(distNow < this.distance - DIST_THRESHOLD || distNow > this.distance +
-          DIST_THRESHOLD) {
+        var delta_d = this.getJointDist() - this.distance;
+        if(Math.abs(delta_d) > DIST_THRESHOLD) {
           this.kill();
         }
-      },
-      kill: function kill() {
-        this.kill$Connection();
-        this.physics.removeConstraint(this.constraint);
+        //bring the joints together
+        var pos1 = this.joint1.getPosition();
+        var pos2 = this.joint2.getPosition();
+        var theta = util.angle([pos1.x, pos1.y], [pos2.x, pos2.y]);
+        var change = [
+          Math.sin(theta) * delta_d / 2,
+          Math.cos(theta) * delta_d / 2
+        ];
+        this.joint1.sprite.position.x -= change[0];
+        this.joint1.sprite.position.y -= change[1];
+        this.joint2.sprite.position.x += change[0];
+        this.joint2.sprite.position.y += change[1];
+        if(Math.abs(this.getJointDist() - this.distance) > 10) {
+          var errored = true;
+        }
+      
+        //console.log(this.getJointDist() - this.distance);
       }
     });
 

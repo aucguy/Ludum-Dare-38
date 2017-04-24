@@ -5,8 +5,8 @@
     
     var points = {
       points: [
-        createPoint([100, 100]),
-        createPoint([200, 200])
+        createPoint([100, 200]),
+        createPoint([200, 100])
       ],
       dist: null
     };
@@ -70,10 +70,14 @@
       Math.cos(theta) * delta_d / 2
     ];
     
-    points.points[0].position[0] -= change[0];
-    points.points[0].position[1] -= change[1];
-    points.points[1].position[0] += change[0];
-    points.points[1].position[1] += change[1];
+    if(Math.abs(change[1]) > 1) {
+      var pause = true;
+    }
+    
+    points.points[0].position[0] += change[0] * (points.points[0].position[0] < points.points[1].position[0] ? -1 : 1);
+    points.points[0].position[1] += change[1] * (points.points[0].position[1] < points.points[1].position[1] ? -1 : 1);
+    points.points[1].position[0] += change[0] * (points.points[1].position[0] < points.points[0].position[0] ? -1 : 1);
+    points.points[1].position[1] += change[1] * (points.points[1].position[1] < points.points[0].position[1] ? -1 : 1);
   }
   
   function render(context, points) {
