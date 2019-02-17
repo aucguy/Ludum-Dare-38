@@ -166,16 +166,20 @@ function load(ldBaseDir) {
       .pipe(pp({
         context: relVars
       }))
-      .pipe(concat('null'))
+      .pipe(concat('preprocess.min.js'))
       .pipe(uglify())
-      .pipe(addsrc.prepend([
-        path.join(ldBaseDir, 'lib/basejs/build/baseinjectors.min.js'),
-        path.join(ldBaseDir, 'lib/canvg/canvg.min.js'),
-        path.join(ldBaseDir, 'lib/phaser/v2/dist/phaser.min.js')
-      ]))
-      .pipe(concat('app.min.js'))
-      .pipe(gulp.dest('build/release'));
-
+      .pipe(gulp.dest('build'))
+      .on('end', () => {
+        gulp.src([
+            path.join(ldBaseDir, 'lib/basejs/build/baseinjectors.min.js'),
+            path.join(ldBaseDir, 'lib/canvg/canvg.min.js'),
+            path.join(ldBaseDir, 'lib/phaser/v2/dist/phaser.min.js'),
+            'build/preprocess.min.js'
+          ])
+          .pipe(concat('app.min.js'))
+          .pipe(gulp.dest('build/release'));
+      });
+      
     //bootstrap
     streamMan.seqFile({},
       (files) => gulp.src(path.join(installDir, 'src/index.js'))
