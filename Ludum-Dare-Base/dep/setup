@@ -6,7 +6,7 @@ fi
 LDBase=$1
 root=$(pwd)
 
-echo "require('./$LDBase/dep/wrappedGulpFile.js').load('$LDBase');" > gulpfile.js
+echo "require('./$LDBase/dep/wrappedGulpfile.js').load('$LDBase');" > gulpfile.js
 
 npm install
 git submodule init

@@ -5,12 +5,18 @@ const child_process = require('child_process');
 const gulp = require('gulp');
 
 const replace = require('gulp-replace');
+
 const concat = require('gulp-concat');
 const uglify = require('gulp-uglify');
+
 const pp = require('gulp-preprocess');
+console.log('before');
+
 const addsrc = require('gulp-add-src');
+console.log('after');
 const jshint = require('gulp-jshint');
 const prettify = require('gulp-jsbeautifier');
+
 
 const yargs = require('yargs');
 
@@ -93,7 +99,7 @@ function load(ldBaseDir) {
     if(useConfig) {
       var config = ppVars();
       if(config instanceof Error) {
-        obj.emit('error', config.message);
+        throw(config);
       }
       config.widthMargin = (util.strToFloat(config.width) + 20) + '';
       config.heightMargin = (util.strToFloat(config.height) + 20) + '';

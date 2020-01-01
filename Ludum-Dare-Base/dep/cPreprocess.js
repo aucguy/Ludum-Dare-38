@@ -2,7 +2,7 @@ const through = require('through2');
 const util = require('./util');
 
 function emitPreprocessError(obj, msg, file, line) {
-  util.emitError(obj, msg + ' at line ' + line + ' in file ' + file.path);
+  throw(new Error(msg + ' at line ' + line + ' in file ' + file.path));
 }
 
 function macroIfOrNot(negate) {
