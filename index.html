@@ -2,9 +2,20 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>LD Entry</title>
+        <title>Ludum Dare Entry</title>
+        <script type="module" src="/node_modules/aucguy-ludum-dare-base/lib/common/bootstrap.js"></script>
+        <script type="module" src="/node_modules/aucguy-ludum-dare-base/lib/common/init.js"></script>
+        <script src="/node_modules/phaser-ce/build/phaser.js"></script>
     </head>
     <body>
-        <iframe width="660" height="500" src="Ludum-Dare-Base/dep/index.html">
+      <span id="gameContainer">
+        <img id="loadingLogo" src="/assets/image/logo.png"></img>
+        <div id="error div" style="display:none">
+			    Oh, no! an error has occurred.
+			    <p>
+				    <textarea readonly id="error text" rows="25" cols="100">error text</textarea>
+			    </p>
+		    </div>
+		  </span>
     </body>
 </html>

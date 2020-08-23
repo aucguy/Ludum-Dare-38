@@ -1,0 +1,12 @@
+{
+    "items": [{
+            "name": "image/background",
+            "url": "assets/image/background.svg",
+            "type": "image"
+        }, {
+            "name": "image/joint",
+            "url": "assets/image/joint.svg",
+            "type": "image"
+        }
+    ]
+}

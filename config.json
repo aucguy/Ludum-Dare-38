@@ -1,6 +1,9 @@
 {
-    "ldBaseDir": "Ludum-Dare-Base",
     "title": "Planet Carbalsnahps 2",
     "width": "640",
-    "height": "480"
+    "height": "480",
+    "svgoDisabled": "false",
+    "libraries": [
+        "phaser2"
+    ]
 }

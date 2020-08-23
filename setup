@@ -1,4 +1,0 @@
-LDBase="Ludum-Dare-Base"
-git submodule init
-git submodule update
-./$LDBase/dep/setup $LDBase

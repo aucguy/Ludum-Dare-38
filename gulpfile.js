@@ -1,1 +1,1 @@
-require('./Ludum-Dare-Base/dep/wrappedGulpfile.js').load('Ludum-Dare-Base');
+require('aucguy-ludum-dare-base').load(require('gulp'));

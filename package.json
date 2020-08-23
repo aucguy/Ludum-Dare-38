@@ -12,15 +12,11 @@
   "author": "aucguy",
   "license": "MIT",
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-add-src": "^1.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-jsbeautifier": "^3.0.1",
-    "gulp-jshint": "^2.1.0",
-    "gulp-preprocess": "^3.0.3",
-    "gulp-replace": "^1.0.0",
-    "gulp-uglify": "^3.0.2",
-    "jshint": "^2.10.3",
-    "yargs": "^13.3.0"
+    "@babel/core": "^7.11.4",
+    "@babel/preset-env": "^7.11.0",
+    "gulp": "^4.0.2"
+  },
+  "dependencies": {
+    "aucguy-ludum-dare-base": "^1.0.9"
   }
 }
